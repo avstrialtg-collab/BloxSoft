@@ -7,19 +7,18 @@ local Window = Fluent:CreateWindow({
     ConfigDefault = 1, CustomName = "BloxSoft"
 })
 
--- Улучшенный загрузчик (не ломает меню при ошибках 404)
+-- Улучшенный загрузчик (не ломает меню при ошибках)
 local function GetCode(path)
     local url = "https://raw.githubusercontent.com/avstrialtg-collab/BloxSoft/main/modules/" .. path
     local success, code = pcall(function() return game:HttpGet(url) end)
     
     if success and not code:find("404") then
-        local func, err = loadstring(code)
+        local func = loadstring(code)
         if func then
             local s, res = pcall(func)
             if s then return res end
         end
     end
-    
     warn("⚠️ Ошибка загрузки: " .. path)
     return nil
 end
@@ -33,7 +32,7 @@ local Tabs = {
     Misc = Window:AddTab({ Title = "Misc", Icon = "settings" })
 }
 
--- Предзагрузка модулей
+-- Предзагрузка (если модули на GitHub еще не созданы, кнопки всё равно появятся)
 local SpeedMod = GetCode("Misc/Speed.lua")
 local NoClipMod = GetCode("Misc/NoClip.lua")
 local InfJumpMod = GetCode("Misc/InfJump.lua")
@@ -43,16 +42,13 @@ local EntityTP = GetCode("TP/EntityTP.lua")
 local FlyMod = GetCode("Misc/Fly.lua")
 
 --- [ Вкладка MISC ] ---
--- Секция Полета (заменяем ломающийся Collapsible на Section)
-Tabs.Misc:AddSection("Flight Control")
+Tabs.Misc:AddSection("Flight & Movement")
 
 Tabs.Misc:AddToggle("FlyToggle", {
     Title = "Enable Fly",
     Default = false,
     Callback = function(v) 
-        if FlyMod and FlyMod.Toggle then 
-            FlyMod.Toggle(v) 
-        end 
+        if FlyMod and FlyMod.Toggle then FlyMod.Toggle(v) end 
     end
 })
 
@@ -62,16 +58,10 @@ Tabs.Misc:AddSlider("FlySpeed", {
     Callback = function(v) _G.FlySpeed = v end
 })
 
--- Секция Движения
-Tabs.Misc:AddSection("Movement Settings")
-
 Tabs.Misc:AddSlider("WalkSpeedSlider", {
     Title = "WalkSpeed",
-    Description = "Настройка скорости",
     Default = 16, Min = 16, Max = 300, Rounding = 0,
-    Callback = function(v) 
-        if SpeedMod then SpeedMod(v) end 
-    end
+    Callback = function(v) if SpeedMod then SpeedMod(v) end end
 })
 
 Tabs.Misc:AddToggle("NoClip", { Title = "NoClip", Default = false, Callback = function(v) if NoClipMod then NoClipMod(v) end end })
@@ -91,7 +81,7 @@ Tabs.TP:AddButton({
 })
 
 --- [ Вкладка VISUALS ] ---
-Tabs.Vis:AddSection("Visual Settings")
+Tabs.Vis:AddSection("ESP Settings")
 Tabs.Vis:AddColorpicker("ESPColor", {
     Title = "ESP Color",
     Default = Color3.fromRGB(255, 255, 255),
@@ -100,7 +90,7 @@ Tabs.Vis:AddColorpicker("ESPColor", {
 
 --- [ Вкладка AIM ] ---
 Tabs.Aim:AddSection("Combat")
-Tabs.Aim:AddToggle("AimActive", { Title = "Enable Silent Aim", Default = false, Callback = function(v) _G.AimActive = v end })
+Tabs.Aim:AddToggle("AimBot", { Title = "Enable AimBot", Default = false, Callback = function(v) _G.AimActive = v end })
 
 --- [ Вкладка AUTO-FARM ] ---
 Tabs.Farm:AddSection("Automation")
