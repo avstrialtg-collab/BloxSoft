@@ -1,30 +1,37 @@
 -- main.lua
 local UserInputService = game:GetService("UserInputService")
-local Menu = require(script.Menu.init)
+-- Исправляем путь: если Menu лежит в той же папке, что и main
+local Menu = require(script:WaitForChild("Menu")) 
 
--- Инициализация главного окна
-local MainGui = Menu.CreateMenu("SoftBox", "enfarse")
+-- Создаем меню
+Menu.CreateMenu("SoftBox", "enfarse")
 
--- Функция для автоматической загрузки модулей
+-- Функция загрузки
 local function LoadModules()
+    local moduleFolder = script:WaitForChild("Module")
     local categories = {"Main", "Farm", "Esp", "Misc"}
     
     for _, catName in pairs(categories) do
-        local folder = script.Module:FindFirstChild(catName)
+        local folder = moduleFolder:FindFirstChild(catName)
         if folder then
-            for _, moduleFile in pairs(folder:GetChildren()) do
-                if moduleFile:IsA("ModuleScript") or moduleFile:IsA("LuaSourceContainer") then
-                    local data = require(moduleFile) -- Каждый модуль должен возвращать {Name = "...", Callback = function}
-                    Menu.AddToggleButton(catName, data.Name, data.Callback)
+            for _, file in pairs(folder:GetChildren()) do
+                if file:IsA("ModuleScript") then
+                    local success, data = pcall(require, file)
+                    if success and data.Name and data.Callback then
+                        -- Добавляем кнопку в нужную вкладку
+                        Menu.AddToggleButton(catName, data.Name, data.Callback)
+                    else
+                        warn("Ошибка в модуле " .. file.Name .. ": " .. tostring(data))
+                    end
                 end
             end
         end
     end
 end
 
--- Управление открытием на клавишу "/"
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if not gameProcessed and input.KeyCode == Enum.KeyCode.Slash then
+-- Открытие на "/"
+UserInputService.InputBegan:Connect(function(input, gpe)
+    if not gpe and input.KeyCode == Enum.KeyCode.Slash then
         Menu.Toggle()
     end
 end)
