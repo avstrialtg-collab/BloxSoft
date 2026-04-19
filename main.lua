@@ -7,7 +7,6 @@ local Window = Fluent:CreateWindow({
     ConfigDefault = 1, CustomName = "BloxSoft"
 })
 
--- Улучшенный загрузчик (не ломает меню при ошибках)
 local function GetCode(path)
     local url = "https://raw.githubusercontent.com/avstrialtg-collab/BloxSoft/main/modules/" .. path
     local success, code = pcall(function() return game:HttpGet(url) end)
@@ -23,7 +22,6 @@ local function GetCode(path)
     return nil
 end
 
--- Вкладки
 local Tabs = {
     Farm = Window:AddTab({ Title = "Auto-Farm", Icon = "swords" }),
     Aim = Window:AddTab({ Title = "Aim", Icon = "target" }),
@@ -32,35 +30,43 @@ local Tabs = {
     Misc = Window:AddTab({ Title = "Misc", Icon = "settings" })
 }
 
--- Предзагрузка (если модули на GitHub еще не созданы, кнопки всё равно появятся)
+-- Модули
 local SpeedMod = GetCode("Misc/Speed.lua")
 local NoClipMod = GetCode("Misc/NoClip.lua")
 local InfJumpMod = GetCode("Misc/InfJump.lua")
-local ColorMod = GetCode("Visuals/ColorSettings.lua")
+local FlyMod = GetCode("Misc/Fly.lua")
+local GodMod = GetCode("Misc/GodMode.lua")
 local TPSettings = GetCode("TP/Settings.lua")
 local EntityTP = GetCode("TP/EntityTP.lua")
-local FlyMod = GetCode("Misc/Fly.lua")
 
 --- [ Вкладка MISC ] ---
-Tabs.Misc:AddSection("Flight & Movement")
+Tabs.Misc:AddSection("Safety & Combat")
+
+Tabs.Misc:AddToggle("GodModeToggle", {
+    Title = "God Mode (Бессмертие)",
+    Default = false,
+    Callback = function(v) if GodMod then GodMod.Toggle(v) end end
+})
+
+Tabs.Misc:AddSection("Flight Control")
 
 Tabs.Misc:AddToggle("FlyToggle", {
     Title = "Enable Fly",
     Default = false,
-    Callback = function(v) 
-        if FlyMod and FlyMod.Toggle then FlyMod.Toggle(v) end 
-    end
+    Callback = function(v) if FlyMod then FlyMod.Toggle(v) end end
 })
 
 Tabs.Misc:AddSlider("FlySpeed", {
     Title = "Fly Speed",
-    Default = 50, Min = 10, Max = 300, Rounding = 0,
+    Default = 50, Min = 10, Max = 300, Rounding = 0, -- Исправлено: добавлен Rounding
     Callback = function(v) _G.FlySpeed = v end
 })
 
+Tabs.Misc:AddSection("Movement Settings")
+
 Tabs.Misc:AddSlider("WalkSpeedSlider", {
     Title = "WalkSpeed",
-    Default = 16, Min = 16, Max = 300, Rounding = 0,
+    Default = 16, Min = 16, Max = 300, Rounding = 0, -- Исправлено: добавлен Rounding
     Callback = function(v) if SpeedMod then SpeedMod(v) end end
 })
 
@@ -68,32 +74,20 @@ Tabs.Misc:AddToggle("NoClip", { Title = "NoClip", Default = false, Callback = fu
 Tabs.Misc:AddToggle("InfJump", { Title = "Infinite Jump", Default = false, Callback = function(v) if InfJumpMod then InfJumpMod(v) end end })
 
 --- [ Вкладка TELEPORT ] ---
-Tabs.TP:AddSection("Teleport Config")
+Tabs.TP:AddSection("Config")
 Tabs.TP:AddSlider("Height", { 
     Title = "Height Offset", 
-    Default = 7, Min = -20, Max = 20, 
-    Callback = function(v) if TPSettings and TPSettings.SetHeight then TPSettings.SetHeight(v) end end 
+    Default = 7, Min = -20, Max = 20, Rounding = 0,
+    Callback = function(v) if TPSettings then TPSettings.SetHeight(v) end end 
 })
 
 Tabs.TP:AddButton({
     Title = "TP to Nearest Enemy",
-    Callback = function() if EntityTP and EntityTP.ToNearest then EntityTP.ToNearest("Bandit") end end
-})
-
---- [ Вкладка VISUALS ] ---
-Tabs.Vis:AddSection("ESP Settings")
-Tabs.Vis:AddColorpicker("ESPColor", {
-    Title = "ESP Color",
-    Default = Color3.fromRGB(255, 255, 255),
-    Callback = function(color) if ColorMod and ColorMod.UpdateColor then ColorMod.UpdateColor(color) end end
+    Callback = function() if EntityTP then EntityTP.ToNearest("Bandit") end end
 })
 
 --- [ Вкладка AIM ] ---
 Tabs.Aim:AddSection("Combat")
-Tabs.Aim:AddToggle("AimBot", { Title = "Enable AimBot", Default = false, Callback = function(v) _G.AimActive = v end })
-
---- [ Вкладка AUTO-FARM ] ---
-Tabs.Farm:AddSection("Automation")
-Tabs.Farm:AddToggle("FarmToggle", { Title = "Start Auto Farm", Default = false, Callback = function(v) _G.FarmActive = v end })
+Tabs.Aim:AddToggle("AimBot", { Title = "Enable Silent Aim", Default = false, Callback = function(v) _G.AimActive = v end })
 
 Window:SelectTab(1)
