@@ -1,23 +1,26 @@
 local GodMode = {}
+local player = game.Players.LocalPlayer
+local runService = game:GetService("RunService")
+
+_G.GodModeActive = false
 
 function GodMode.Toggle(state)
     _G.GodModeActive = state
-    local player = game.Players.LocalPlayer
     
-    task.spawn(function()
-        while _G.GodModeActive do
-            local char = player.Character
-            if char and char:FindFirstChild("Humanoid") then
-                -- Метод: отключение состояния падения и некоторых проверок урона
-                char.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Dead, false)
+    if _G.GodModeActive then
+        -- Создаем цикл восстановления
+        task.spawn(function()
+            while _G.GodModeActive do
+                runService.Heartbeat:Wait()
+                local char = player.Character
+                local hum = char and char:FindFirstChild("Humanoid")
+                
+                if hum and hum.Health > 0 and hum.Health < hum.MaxHealth then
+                    hum.Health = hum.MaxHealth
+                end
             end
-            task.wait(1)
-        end
-        -- Возвращаем стандартное состояние при выключении
-        if player.Character and player.Character:FindFirstChild("Humanoid") then
-            player.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Dead, true)
-        end
-    end)
+        end)
+    end
 end
 
 return GodMode
