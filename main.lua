@@ -46,6 +46,27 @@ local FlyMod = GetCode("Misc/Fly.lua")
 -- Используем AddSection вместо AddCollapsible для 100% стабильности
 local MoveSection = Tabs.Misc:AddSection("Movement Settings")
 
+local FlyGroup = Tabs.Misc:AddCollapsible({
+    Title = "Fly Hack",
+    Description = "Полет за камерой",
+    Default = false
+})
+
+FlyGroup:AddToggle("FlyToggle", {
+    Title = "Enable Fly",
+    Default = false,
+    Callback = function(v) 
+        if FlyMod and FlyMod.Toggle then 
+            FlyMod.Toggle(v) 
+        end 
+    end
+})
+
+FlyGroup:AddSlider("FlySpeed", {
+    Title = "Fly Speed",
+    Default = 50, Min = 10, Max = 300, Rounding = 0,
+    Callback = function(v) _G.FlySpeed = v end
+})
 Tabs.Misc:AddSlider("WalkSpeedSlider", {
     Title = "WalkSpeed",
     Description = "Настройка скорости",
