@@ -2,7 +2,7 @@ local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/
 
 local Window = Fluent:CreateWindow({
     Title = "BloxSoft | KATAHA Edition",
-    SubTitle = "by Stanislav Burlakov",
+    SubTitle = "by S",
     TabWidth = 160, Size = UDim2.fromOffset(580, 460),
     ConfigDefault = 1, CustomName = "BloxSoft"
 })
