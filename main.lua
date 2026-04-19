@@ -7,19 +7,21 @@ local Window = Fluent:CreateWindow({
     ConfigDefault = 1, CustomName = "BloxSoft"
 })
 
--- Улучшенная функция загрузки
+-- Улучшенный загрузчик (не ломает меню при ошибках 404)
 local function GetCode(path)
     local url = "https://raw.githubusercontent.com/avstrialtg-collab/BloxSoft/main/modules/" .. path
-    local success, result = pcall(function() 
-        local code = game:HttpGet(url)
-        return loadstring(code)() 
-    end)
-    if success and result then 
-        return result 
-    else 
-        warn("⚠️ Модуль не найден или ошибка в коде: " .. path)
-        return function() print("Модуль " .. path .. " пока не готов") end -- Заглушка, чтобы не ломать меню
+    local success, code = pcall(function() return game:HttpGet(url) end)
+    
+    if success and not code:find("404") then
+        local func, err = loadstring(code)
+        if func then
+            local s, res = pcall(func)
+            if s then return res end
+        end
     end
+    
+    warn("⚠️ Ошибка загрузки: " .. path)
+    return nil
 end
 
 -- Вкладки
@@ -31,7 +33,7 @@ local Tabs = {
     Misc = Window:AddTab({ Title = "Misc", Icon = "settings" })
 }
 
--- Ленивая загрузка (загружаем только когда нужно, чтобы не вешать меню)
+-- Предзагрузка модулей
 local SpeedMod = GetCode("Misc/Speed.lua")
 local NoClipMod = GetCode("Misc/NoClip.lua")
 local InfJumpMod = GetCode("Misc/InfJump.lua")
@@ -40,47 +42,48 @@ local TPSettings = GetCode("TP/Settings.lua")
 local EntityTP = GetCode("TP/EntityTP.lua")
 
 --- [ Вкладка MISC ] ---
-local MiscGroup = Tabs.Misc:AddCollapsible({
-    Title = "Speed & Movement",
-    Description = "Настройки передвижения",
-    Default = true
-})
+-- Используем AddSection вместо AddCollapsible для 100% стабильности
+local MoveSection = Tabs.Misc:AddSection("Movement Settings")
 
-MiscGroup:AddSlider("WalkSpeedSlider", {
-    Title = "Custom Speed",
+Tabs.Misc:AddSlider("WalkSpeedSlider", {
+    Title = "WalkSpeed",
+    Description = "Настройка скорости",
     Default = 16, Min = 16, Max = 300, Rounding = 0,
-    Callback = function(Value) 
-        pcall(function() SpeedMod(Value) end)
+    Callback = function(v) 
+        if SpeedMod then SpeedMod(v) end 
     end
 })
 
-MiscGroup:AddToggle("NoClip", { Title = "NoClip", Default = false, Callback = function(v) NoClipMod(v) end })
-MiscGroup:AddToggle("InfJump", { Title = "Infinite Jump", Default = false, Callback = function(v) InfJumpMod(v) end })
+Tabs.Misc:AddToggle("NoClip", { Title = "NoClip", Default = false, Callback = function(v) if NoClipMod then NoClipMod(v) end end })
+Tabs.Misc:AddToggle("InfJump", { Title = "Infinite Jump", Default = false, Callback = function(v) if InfJumpMod then InfJumpMod(v) end end })
 
 --- [ Вкладка TELEPORT ] ---
+Tabs.TP:AddSection("Teleport Config")
 Tabs.TP:AddSlider("Height", { 
-    Title = "Vertical Offset", 
+    Title = "Height Offset", 
     Default = 7, Min = -20, Max = 20, 
-    Callback = function(v) if TPSettings.SetHeight then TPSettings.SetHeight(v) end end 
+    Callback = function(v) if TPSettings and TPSettings.SetHeight then TPSettings.SetHeight(v) end end 
 })
 
 Tabs.TP:AddButton({
     Title = "TP to Nearest Enemy",
-    Callback = function() if EntityTP.ToNearest then EntityTP.ToNearest("Bandit") end end
+    Callback = function() if EntityTP and EntityTP.ToNearest then EntityTP.ToNearest("Bandit") end end
 })
 
 --- [ Вкладка VISUALS ] ---
+Tabs.Vis:AddSection("Visual Settings")
 Tabs.Vis:AddColorpicker("ESPColor", {
     Title = "ESP Color",
     Default = Color3.fromRGB(255, 255, 255),
-    Callback = function(color) if ColorMod.UpdateColor then ColorMod.UpdateColor(color) end end
+    Callback = function(color) if ColorMod and ColorMod.UpdateColor then ColorMod.UpdateColor(color) end end
 })
 
 --- [ Вкладка AIM ] ---
-Tabs.Aim:AddSection("Silent Aim")
-Tabs.Aim:AddToggle("AimBot", { Title = "Enable Aim", Default = false, Callback = function(v) _G.AimActive = v end })
+Tabs.Aim:AddSection("Combat")
+Tabs.Aim:AddToggle("AimActive", { Title = "Enable Silent Aim", Default = false, Callback = function(v) _G.AimActive = v end })
 
 --- [ Вкладка AUTO-FARM ] ---
-Tabs.Farm:AddToggle("AutoBandit", { Title = "Farm Bandits", Default = false, Callback = function(v) _G.FarmActive = v end })
+Tabs.Farm:AddSection("Automation")
+Tabs.Farm:AddToggle("FarmToggle", { Title = "Start Auto Farm", Default = false, Callback = function(v) _G.FarmActive = v end })
 
 Window:SelectTab(1)
