@@ -40,6 +40,7 @@ local InfJumpMod = GetCode("Misc/InfJump.lua")
 local ColorMod = GetCode("Visuals/ColorSettings.lua")
 local TPSettings = GetCode("TP/Settings.lua")
 local EntityTP = GetCode("TP/EntityTP.lua")
+local FlyMod = GetCode("Misc/Fly.lua")
 
 --- [ Вкладка MISC ] ---
 -- Используем AddSection вместо AddCollapsible для 100% стабильности
