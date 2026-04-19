@@ -127,5 +127,67 @@ function Menu.Toggle()
     TabsIsland.Visible = state
     BottomIsland.Visible = state
 end
+local Pages = {} -- Здесь будут храниться фреймы вкладок
 
+-- Функция для создания кнопок переключения вкладок на верхнем острове
+local function CreateTabButton(name)
+    local btn = Instance.new("TextButton", TabsIsland) -- TabsIsland из предыдущего кода
+    btn.Size = UDim2.new(0, 80, 1, 0)
+    btn.BackgroundTransparency = 1
+    btn.Text = name
+    btn.TextColor3 = Color3.fromRGB(200, 200, 200)
+    btn.Font = Enum.Font.Gotham
+    btn.TextSize = 14
+
+    -- Создаем страницу для этой вкладки
+    local page = Instance.new("ScrollingFrame", MainFrame)
+    page.Size = UDim2.new(1, -20, 1, -40)
+    page.Position = UDim2.new(0, 10, 0, 35)
+    page.BackgroundTransparency = 1
+    page.Visible = (name == "Main") -- По умолчанию видна только Main
+    page.ScrollBarThickness = 2
+    
+    local layout = Instance.new("UIListLayout", page)
+    layout.Padding = UDim.new(0, 5)
+    layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+
+    Pages[name] = page
+
+    btn.MouseButton1Click:Connect(function()
+        for _, p in pairs(Pages) do p.Visible = false end
+        page.Visible = true
+    end)
+end
+
+-- Инициализируем вкладки
+local tabs = {"Main", "Farm", "Esp", "Misc"}
+local tabLayout = Instance.new("UIListLayout", TabsIsland)
+tabLayout.FillDirection = Enum.FillDirection.Horizontal
+tabLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+
+for _, t in pairs(tabs) do CreateTabButton(t) end
+
+-- Функция добавления кнопки в меню
+function Menu.AddToggleButton(category, name, callback)
+    local targetPage = Pages[category]
+    if not targetPage then return end
+
+    local btn = Instance.new("TextButton", targetPage)
+    btn.Size = UDim2.new(1, 0, 0, 35)
+    btn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    btn.Text = "  " .. name
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.TextXAlignment = Enum.TextXAlignment.Left
+    btn.Font = Enum.Font.Gotham
+    
+    local corner = Instance.new("UICorner", btn)
+    corner.CornerRadius = UDim.new(0, 6)
+
+    local enabled = false
+    btn.MouseButton1Click:Connect(function()
+        enabled = not enabled
+        btn.BackgroundColor3 = enabled and Color3.fromRGB(40, 100, 40) or Color3.fromRGB(25, 25, 25)
+        callback(enabled)
+    end)
+end
 return Menu
