@@ -1,24 +1,49 @@
--- Загружаем библиотеку интерфейса
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
--- Создаем окно
 local Window = Rayfield:CreateWindow({
-   Name = "KATAHA HUB | Blox Fruits",
-   LoadingTitle = "Загрузка модулей...",
-   ConfigurationSaving = { Enabled = true, FileName = "KatahaConfig" }
+   Name = "BloxSoft Hub | KATAHA",
+   LoadingTitle = "Загрузка системы...",
+   LoadingSubtitle = "by Stanislav Burlakov",
+   ConfigurationSaving = {
+      Enabled = true,
+      FileName = "BloxSoftConfig"
+   }
 })
 
--- Загружаем функции из твоего GitHub (пример)
-local CombatModules = loadstring(game:HttpGet("https://raw.githubusercontent.com/ТВОЙ_НИК/РЕПОЗИТОРИЙ/main/Modules/Combat.lua"))()
+-- Создаем вкладки
+local MainTab = Window:CreateTab("Автофарм", 4483362458) 
+local VisualsTab = Window:CreateTab("Визуалы", 4483362458)
 
--- Создаем вкладку
-local MainTab = Window:CreateTab("Фарм", 4483362458) 
+-- Переменные состояния
+_G.FarmActive = false
+_G.EspActive = false
+
+-- Подключаем логику фарма (из твоего же репозитория)
+-- Позже ты создашь файл Modules/Combat.lua и пропишешь ссылку на него здесь
+local function startCombatLogic()
+    -- Сюда мы вставим код нашего последнего оптимизированного фарма
+end
 
 MainTab:CreateToggle({
-   Name = "Автофарм (Bandits)",
+   Name = "Включить фарм (Bandits/Trainee/Snow)",
    CurrentValue = false,
+   Flag = "FarmToggle", 
    Callback = function(Value)
       _G.FarmActive = Value
-      CombatModules.StartFarm() -- Вызов функции из другого файла
+      if Value then
+          print("Фарм запущен")
+          -- Вызов функции фарма
+      end
    end,
 })
+
+VisualsTab:CreateToggle({
+   Name = "Белые хитбоксы (ESP)",
+   CurrentValue = false,
+   Flag = "EspToggle",
+   Callback = function(Value)
+      _G.EspActive = Value
+   end,
+})
+
+Rayfield:LoadConfiguration()
