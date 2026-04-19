@@ -43,16 +43,10 @@ local EntityTP = GetCode("TP/EntityTP.lua")
 local FlyMod = GetCode("Misc/Fly.lua")
 
 --- [ Вкладка MISC ] ---
--- Используем AddSection вместо AddCollapsible для 100% стабильности
-local MoveSection = Tabs.Misc:AddSection("Movement Settings")
+-- Секция Полета (заменяем ломающийся Collapsible на Section)
+Tabs.Misc:AddSection("Flight Control")
 
-local FlyGroup = Tabs.Misc:AddCollapsible({
-    Title = "Fly Hack",
-    Description = "Полет за камерой",
-    Default = false
-})
-
-FlyGroup:AddToggle("FlyToggle", {
+Tabs.Misc:AddToggle("FlyToggle", {
     Title = "Enable Fly",
     Default = false,
     Callback = function(v) 
@@ -62,11 +56,15 @@ FlyGroup:AddToggle("FlyToggle", {
     end
 })
 
-FlyGroup:AddSlider("FlySpeed", {
+Tabs.Misc:AddSlider("FlySpeed", {
     Title = "Fly Speed",
     Default = 50, Min = 10, Max = 300, Rounding = 0,
     Callback = function(v) _G.FlySpeed = v end
 })
+
+-- Секция Движения
+Tabs.Misc:AddSection("Movement Settings")
+
 Tabs.Misc:AddSlider("WalkSpeedSlider", {
     Title = "WalkSpeed",
     Description = "Настройка скорости",
