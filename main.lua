@@ -1,49 +1,51 @@
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 
-local Window = Rayfield:CreateWindow({
-   Name = "BloxSoft Hub | KATAHA",
-   LoadingTitle = "Загрузка системы...",
-   LoadingSubtitle = "by Stanislav Burlakov",
-   ConfigurationSaving = {
-      Enabled = true,
-      FileName = "BloxSoftConfig"
-   }
+local Window = Fluent:CreateWindow({
+    Title = "BloxSoft | KATAHA Edition",
+    SubTitle = "by Stanislav Burlakov",
+    TabWidth = 160, Size = UDim2.fromOffset(580, 460),
+    ConfigDefault = 1, CustomName = "BloxSoft"
 })
 
--- Создаем вкладки
-local MainTab = Window:CreateTab("Автофарм", 4483362458) 
-local VisualsTab = Window:CreateTab("Визуалы", 4483362458)
-
--- Переменные состояния
-_G.FarmActive = false
-_G.EspActive = false
-
--- Подключаем логику фарма (из твоего же репозитория)
--- Позже ты создашь файл Modules/Combat.lua и пропишешь ссылку на него здесь
-local function startCombatLogic()
-    -- Сюда мы вставим код нашего последнего оптимизированного фарма
+-- Функция авто-загрузки (Замени 'avstrialtg-collab' на свой ник)
+local function GetCode(path)
+    local url = "https://raw.githubusercontent.com/avstrialtg-collab/BloxSoft/main/modules/" .. path
+    local success, result = pcall(function() return loadstring(game:HttpGet(url))() end)
+    if success then return result else warn("Ошибка загрузки модуля: " .. path) return nil end
 end
 
-MainTab:CreateToggle({
-   Name = "Включить фарм (Bandits/Trainee/Snow)",
-   CurrentValue = false,
-   Flag = "FarmToggle", 
-   Callback = function(Value)
-      _G.FarmActive = Value
-      if Value then
-          print("Фарм запущен")
-          -- Вызов функции фарма
-      end
-   end,
-})
+-- Вкладки
+local Tabs = {
+    Farm = Window:AddTab({ Title = "Auto-Farm", Icon = "swords" }),
+    TP = Window:AddTab({ Title = "Teleport", Icon = "map-pin" }),
+    Vis = Window:AddTab({ Title = "Visuals", Icon = "eye" }),
+    Misc = Window:AddTab({ Title = "Misc", Icon = "settings" })
+}
 
-VisualsTab:CreateToggle({
-   Name = "Белые хитбоксы (ESP)",
-   CurrentValue = false,
-   Flag = "EspToggle",
-   Callback = function(Value)
-      _G.EspActive = Value
-   end,
-})
+-- ПОДКЛЮЧЕНИЕ МОДУЛЕЙ
+-- 1. Misc
+local SpeedMod = GetCode("Misc/Speed.lua")
+local JumpMod = GetCode("Misc/Jump.lua")
+local NoClipMod = GetCode("Misc/NoClip.lua")
+local InfJumpMod = GetCode("Misc/InfJump.lua")
 
-Rayfield:LoadConfiguration()
+-- 2. Visuals
+local ESPMod = GetCode("Visuals/ESP.lua")
+local ColorMod = GetCode("Visuals/ColorSettings.lua")
+
+-- 3. TP
+local TPSettings = GetCode("TP/Settings.lua")
+local EntityTP = GetCode("TP/EntityTP.lua")
+
+-- Отрисовка интерфейса (Пример для Misc)
+Tabs.Misc:AddSlider("WalkSpeed", { Title = "Speed", Default = 16, Min = 16, Max = 300, Rounding = 0, Callback = function(v) SpeedMod(v) end })
+Tabs.Misc:AddToggle("NoClip", { Title = "NoClip", Default = false, Callback = function(v) NoClipMod(v) end })
+Tabs.Misc:AddToggle("InfJump", { Title = "Infinite Jump", Default = false, Callback = function(v) InfJumpMod(v) end })
+
+-- Отрисовка TP
+Tabs.TP:AddSection("Offsets")
+Tabs.TP:AddSlider("Height", { Title = "TP Height", Default = 7, Min = -20, Max = 20, Callback = function(v) TPSettings.SetHeight(v) end })
+
+Tabs.TP:AddButton({ Title = "TP to Nearest Entity", Callback = function() EntityTP.ToNearest("Bandit") end })
+
+Window:SelectTab(1)
