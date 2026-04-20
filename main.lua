@@ -1,5 +1,5 @@
 local UserInputService = game:GetService("UserInputService")
-local Menu = require(script.Menu) -- Путь к Menu/init.lua
+local Menu = require(script.Parent.Menu)
 
 Menu.CreateMenu("SoftBox", "enfarse")
 
