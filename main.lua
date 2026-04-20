@@ -1,5 +1,5 @@
 local UserInputService = game:GetService("UserInputService")
-local Menu = require(script.Parent.Menu)
+local Menu = require(script.Parent:WaitForChild("Menu"))
 
 Menu.CreateMenu("SoftBox", "enfarse")
 
