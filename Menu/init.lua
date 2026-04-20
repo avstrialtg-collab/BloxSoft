@@ -13,10 +13,13 @@ local Pages = {}
 local Theme = {
     MainColor = Color3.fromRGB(15, 15, 15),
     AccentColor = Color3.fromRGB(30, 30, 30),
-    EnabledColor = Color3.fromRGB(60, 60, 60), -- Светло-серый при включении
+    EnabledColor = Color3.fromRGB(60, 60, 60),
     TextColor = Color3.fromRGB(255, 255, 255),
     Rounding = UDim.new(0, 10),
 }
+
+-- Флаг, чтобы слайдер не мешал перетаскиванию меню
+local IsInteractingWithUI = false
 
 function Menu.CreateMenu(title, author)
     MainFrame.Size = UDim2.new(0, 400, 0, 300)
@@ -32,12 +35,13 @@ function Menu.CreateMenu(title, author)
     TitleLabel.Font = Enum.Font.GothamBold
     TitleLabel.TextSize = 16
 
-    -- Острова
     TabsIsland.Size = UDim2.new(0, 350, 0, 40)
     TabsIsland.Position = UDim2.new(0.5, -175, 0.5, -210)
     TabsIsland.BackgroundColor3 = Theme.MainColor
     Instance.new("UICorner", TabsIsland).CornerRadius = Theme.Rounding
-    Instance.new("UIListLayout", TabsIsland).FillDirection = Enum.FillDirection.Horizontal
+    local tLayout = Instance.new("UIListLayout", TabsIsland)
+    tLayout.FillDirection = Enum.FillDirection.Horizontal
+    tLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 
     BottomIsland.Size = UDim2.new(0, 150, 0, 45)
     BottomIsland.Position = UDim2.new(0.5, -75, 0.5, 160)
@@ -70,7 +74,6 @@ function Menu.CreateMenu(title, author)
         end)
     end
 
-    -- Кнопки управления (X, -)
     local function CreateControl(txt, x, cb)
         local b = Instance.new("TextButton", BottomIsland)
         b.Size = UDim2.new(0, 30, 0, 30)
@@ -81,25 +84,30 @@ function Menu.CreateMenu(title, author)
         Instance.new("UICorner", b).CornerRadius = UDim.new(1, 0)
         b.MouseButton1Click:Connect(cb)
     end
+
     CreateControl("X", 0.1, function() ScreenGui:Destroy() end)
     CreateControl("-", 0.4, function() Menu.Toggle() end)
+    CreateControl("S", 0.7, function() print("Settings Opened") end) -- Вернули иконку настроек
 
     Menu.MakeDraggable(MainFrame, {TabsIsland, BottomIsland})
 end
 
 function Menu.AddModule(category, name, callback)
     local page = Pages[category]
+    if not page then return end
+
     local container = Instance.new("Frame", page)
     container.Size = UDim2.new(1, 0, 0, 40)
     container.BackgroundColor3 = Theme.AccentColor
+    container.AutomaticSize = Enum.AutomaticSize.Y -- Авто-размер по вертикали
     Instance.new("UICorner", container).CornerRadius = UDim.new(0, 6)
 
     local btn = Instance.new("TextButton", container)
     btn.Size = UDim2.new(1, 0, 0, 40)
     btn.BackgroundTransparency = 1
-    btn.Text = "   " .. name
+    btn.Text = "    " .. name
     btn.TextColor3 = Theme.TextColor
-    btn.TextSize = 16 -- Увеличено название модуля
+    btn.TextSize = 16
     btn.Font = Enum.Font.GothamSemibold
     btn.TextXAlignment = Enum.TextXAlignment.Left
 
@@ -108,28 +116,35 @@ function Menu.AddModule(category, name, callback)
     arrow.Size = UDim2.new(0, 30, 0, 40)
     arrow.Position = UDim2.new(1, -35, 0, 0)
     arrow.BackgroundTransparency = 1
-    arrow.TextColor3 = Color3.fromRGB(100, 100, 100)
+    arrow.TextColor3 = Color3.fromRGB(150, 150, 150)
     arrow.Font = Enum.Font.GothamBold
 
     local settingsFrame = Instance.new("Frame", container)
     settingsFrame.Size = UDim2.new(1, 0, 0, 0)
     settingsFrame.Position = UDim2.new(0, 0, 0, 40)
-    settingsFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-    settingsFrame.ClipsDescendants = true
+    settingsFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    settingsFrame.Visible = false
+    settingsFrame.BorderSizePixel = 0
     Instance.new("UICorner", settingsFrame)
+    
     local sLayout = Instance.new("UIListLayout", settingsFrame)
-    sLayout.Padding = UDim.new(0, 5)
+    sLayout.Padding = UDim.new(0, 10)
+    sLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    
+    -- Padding внутри шторки, чтобы элементы не жались к краям
+    local UIPadding = Instance.new("UIPadding", settingsFrame)
+    UIPadding.PaddingTop = UDim.new(0, 10)
+    UIPadding.PaddingBottom = UDim.new(0, 10)
 
     local enabled = false
     local open = false
 
     btn.MouseButton1Click:Connect(function()
         enabled = not enabled
-        btn.Parent.BackgroundColor3 = enabled and Theme.EnabledColor or Theme.AccentColor
+        container.BackgroundColor3 = enabled and Theme.EnabledColor or Theme.AccentColor
         callback(enabled)
     end)
 
-    -- Открытие настроек по ПКМ или просто клику (зависит от логики, сделаем по клику на стрелочку)
     local toggleBtn = Instance.new("TextButton", container)
     toggleBtn.Size = UDim2.new(0, 40, 0, 40)
     toggleBtn.Position = UDim2.new(1, -40, 0, 0)
@@ -138,8 +153,9 @@ function Menu.AddModule(category, name, callback)
 
     toggleBtn.MouseButton1Click:Connect(function()
         open = not open
-        settingsFrame:TweenSize(UDim2.new(1, 0, 0, open and 100 or 0), "Out", "Quart", 0.3, true)
-        container:TweenSize(UDim2.new(1, 0, 0, open and 140 or 40), "Out", "Quart", 0.3, true)
+        settingsFrame.Visible = open
+        settingsFrame.Size = open and UDim2.new(1, 0, 0, 0) or UDim2.new(1, 0, 0, 0)
+        settingsFrame.AutomaticSize = open and Enum.AutomaticSize.Y or Enum.AutomaticSize.None
         arrow.Rotation = open and 90 or 0
     end)
 
@@ -147,26 +163,29 @@ function Menu.AddModule(category, name, callback)
 
     function functions.AddSlider(min, max, default, cb)
         local sliderFrame = Instance.new("Frame", settingsFrame)
-        sliderFrame.Size = UDim2.new(1, -20, 0, 30)
-        sliderFrame.Position = UDim2.new(0, 10, 0, 0)
+        sliderFrame.Size = UDim2.new(0.9, 0, 0, 40)
         sliderFrame.BackgroundTransparency = 1
 
         local sLabel = Instance.new("TextLabel", sliderFrame)
         sLabel.Text = "Value: " .. default
-        sLabel.Size = UDim2.new(1, 0, 0, 15)
+        sLabel.Size = UDim2.new(1, 0, 0, 20)
         sLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
         sLabel.BackgroundTransparency = 1
         sLabel.Font = Enum.Font.Gotham
         sLabel.TextSize = 12
 
-        local bar = Instance.new("Frame", sliderFrame)
-        bar.Size = UDim2.new(1, 0, 0, 4)
+        local bar = Instance.new("TextButton", sliderFrame)
+        bar.Text = ""
+        bar.Size = UDim2.new(1, 0, 0, 6)
         bar.Position = UDim2.new(0, 0, 0.7, 0)
-        bar.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+        bar.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+        bar.AutoButtonColor = false
+        Instance.new("UICorner", bar)
 
         local fill = Instance.new("Frame", bar)
         fill.Size = UDim2.new((default - min) / (max - min), 0, 1, 0)
         fill.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
+        Instance.new("UICorner", fill)
 
         local dragging = false
         local function update()
@@ -180,22 +199,39 @@ function Menu.AddModule(category, name, callback)
             cb(val)
         end
 
-        bar.InputBegan:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 then dragging = true end end)
-        UserInputService.InputEnded:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end end)
-        UserInputService.InputChanged:Connect(function(i) if dragging and i.UserInputType == Enum.UserInputType.MouseMovement then update() end end)
+        bar.MouseButton1Down:Connect(function() 
+            dragging = true 
+            IsInteractingWithUI = true -- Блокируем движение меню
+        end)
+        
+        UserInputService.InputEnded:Connect(function(i) 
+            if i.UserInputType == Enum.UserInputType.MouseButton1 then 
+                dragging = false 
+                IsInteractingWithUI = false
+            end 
+        end)
+        
+        UserInputService.InputChanged:Connect(function(i) 
+            if dragging and i.UserInputType == Enum.UserInputType.MouseMovement then update() end 
+        end)
     end
 
     function functions.AddTextBox(placeholder, cb)
         local box = Instance.new("TextBox", settingsFrame)
-        box.Size = UDim2.new(1, -20, 0, 30)
-        box.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+        box.Size = UDim2.new(0.9, 0, 0, 30)
+        box.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
         box.PlaceholderText = placeholder
         box.Text = ""
         box.TextColor3 = Theme.TextColor
         box.Font = Enum.Font.Gotham
         box.TextSize = 14
         Instance.new("UICorner", box)
-        box.FocusLost:Connect(function() cb(box.Text) end)
+        
+        box.Focused:Connect(function() IsInteractingWithUI = true end)
+        box.FocusLost:Connect(function() 
+            IsInteractingWithUI = false
+            cb(box.Text) 
+        end)
     end
 
     return functions
@@ -204,7 +240,7 @@ end
 function Menu.MakeDraggable(frame, helpers)
     local dragging, dragStart, startPos
     frame.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        if input.UserInputType == Enum.UserInputType.MouseButton1 and not IsInteractingWithUI then
             dragging = true
             dragStart = input.Position
             startPos = frame.Position
