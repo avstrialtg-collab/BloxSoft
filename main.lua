@@ -49,4 +49,5 @@ UserInputService.InputBegan:Connect(function(input, gpe)
 end)
 
 -- Запускаем загрузку
+--
 task.spawn(LoadModules)
