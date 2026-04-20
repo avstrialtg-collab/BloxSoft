@@ -10,7 +10,7 @@ local ModuleLinks = {
     ["Farm"] = {},
     ["Esp"] = {},
     ["Misc"] = {
-        "https://raw.githubusercontent.com/avstrialtg-collab/BloxSoft/refs/heads/main/Module/Misc/speed.lua"
+        "https://raw.githubusercontent.com/avstrialtg-collab/BloxSoft/refs/heads/main/Module/Misc/speed.lua",
         "https://raw.githubusercontent.com/avstrialtg-collab/BloxSoft/refs/heads/main/Module/Misc/fly.lua"
     }
 }
