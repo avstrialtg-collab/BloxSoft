@@ -3,19 +3,36 @@ local Menu = loadstring(MenuSource)()
 
 Menu.CreateMenu("SoftBox", "enfarse")
 
--- Автоматическая подгрузка модулей
+-- Автоматическая подгрузка модулей по твоим ссылкам
 local function LoadModules()
-    local moduleFolder = script:WaitForChild("Module")
     local categories = {"Main", "Farm", "Esp", "Misc"}
     
+    -- СЮДА ДОБАВЛЯЙ СВОИ ССЫЛКИ
+    local moduleLinks = {
+        ["Main"] = {
+            -- "ссылка",
+        },
+        ["Farm"] = {
+            -- "ссылка",
+        },
+        ["Esp"] = {
+            -- "ссылка",
+        },
+        ["Misc"] = {
+            "https://raw.githubusercontent.com/avstrialtg-collab/BloxSoft/refs/heads/main/Module/Misc/speed.lua",
+            -- Можешь добавлять еще ссылки через запятую
+        }
+    }
+
     for _, catName in pairs(categories) do
-        local folder = moduleFolder:FindFirstChild(catName)
-        if folder then
-            for _, file in pairs(folder:GetChildren()) do
-                if file:IsA("ModuleScript") then
-                    local success, moduleData = pcall(require, file)
-                    if success and moduleData.Name and moduleData.Callback then
-                        -- Создаем модуль и получаем функции для настроек
+        local links = moduleLinks[catName]
+        if links then
+            for _, url in pairs(links) do
+                local success, moduleSource = pcall(game.HttpGet, game, url)
+                if success then
+                    local moduleData = loadstring(moduleSource)()
+                    if moduleData and moduleData.Name and moduleData.Callback then
+                        -- Создаем модуль в меню
                         local settings = Menu.AddModule(catName, moduleData.Name, moduleData.Callback)
                         
                         -- Если в модуле есть функция настроек, вызываем её
@@ -23,8 +40,10 @@ local function LoadModules()
                             moduleData.SetupSettings(settings)
                         end
                     else
-                        warn("Ошибка загрузки модуля: " .. file.Name)
+                        warn("Ошибка формата модуля по ссылке: " .. url)
                     end
+                else
+                    warn("Не удалось загрузить модуль: " .. url)
                 end
             end
         end
