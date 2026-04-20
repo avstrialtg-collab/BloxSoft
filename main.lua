@@ -4,63 +4,54 @@ local Menu = loadstring(MenuSource)()
 
 Menu.CreateMenu("SoftBox", "enfarse")
 
--- Твой список модулей. Просто добавляй ссылки в соответствующие категории.
+-- Список ссылок на модули
 local ModuleLinks = {
-    ["Main"] = {
-        -- "ссылка",
-    },
-    ["Farm"] = {
-        -- "ссылка",
-    },
-    ["Esp"] = {
-        -- "ссылка",
-    },
+    ["Main"] = {},
+    ["Farm"] = {},
+    ["Esp"] = {},
     ["Misc"] = {
-        "https://raw.githubusercontent.com/avstrialtg-collab/BloxSoft/refs/heads/main/Module/Misc/speed.lua",
-        -- Сюда можно добавить еще ссылки через запятую
+        "https://raw.githubusercontent.com/avstrialtg-collab/BloxSoft/refs/heads/main/Module/Misc/speed.lua"
     }
 }
 
+-- НОВАЯ ФУНКЦИЯ ЗАГРУЗКИ (Заменяет старую LoadModules)
 local function LoadRemoteModules()
     for catName, links in pairs(ModuleLinks) do
         for _, url in pairs(links) do
-            -- Загружаем исходный код модуля по ссылке
-            local success, source = pcall(game.HttpGet, game, url)
+            local success, source = pcall(function() return game:HttpGet(url) end)
             
             if success then
-                -- Превращаем текст в исполняемый код
                 local moduleFunction, loadError = loadstring(source)
-                
                 if moduleFunction then
                     local moduleSuccess, moduleData = pcall(moduleFunction)
                     
                     if moduleSuccess and moduleData.Name and moduleData.Callback then
-                        -- Добавляем в меню
+                        -- Добавляем модуль в меню и получаем объект настроек
                         local settings = Menu.AddModule(catName, moduleData.Name, moduleData.Callback)
                         
-                        -- Настраиваем слайдеры/боксы, если они есть
+                        -- Если в speed.lua есть SetupSettings, вызываем её
                         if moduleData.SetupSettings and settings then
                             moduleData.SetupSettings(settings)
                         end
                     else
-                        warn("Ошибка выполнения модуля: " .. url .. " | Ошибка: " .. tostring(moduleData))
+                        warn("Ошибка в структуре модуля: " .. url)
                     end
                 else
-                    warn("Ошибка компиляции модуля (loadstring): " .. url .. " | " .. tostring(loadError))
+                    warn("Ошибка loadstring: " .. tostring(loadError))
                 end
             else
-                warn("Не удалось скачать модуль по ссылке: " .. url)
+                warn("Не удалось скачать файл по ссылке: " .. url)
             end
         end
     end
 end
 
--- Управление меню
+-- Открытие/закрытие меню на слэш (/)
 UserInputService.InputBegan:Connect(function(input, gpe)
     if not gpe and input.KeyCode == Enum.KeyCode.Slash then
         Menu.Toggle()
     end
 end)
 
--- Запуск загрузки
+-- ЗАПУСК
 LoadRemoteModules()
