@@ -1,20 +1,40 @@
 local UserInputService = game:GetService("UserInputService")
-local CoreGui = game:GetService("CoreGui")
+local Menu = require(script.Menu/init.lua) -- Путь к Menu/init.lua
 
--- Пытаемся найти папку, где лежит проект (обычно она называется так же, как папка в VS Code)
--- Если ты не знаешь название папки, поищи её в CoreGui через Explorer
-local root = script.Parent 
+Menu.CreateMenu("SoftBox", "enfarse")
 
-if not root or root == CoreGui then
-    -- Если скрипт "одинокий", пробуем найти папку проекта в CoreGui по имени
-    -- ЗАМЕНИ "SoftBox" на название твоей корневой папки из VS Code, если оно другое
-    root = CoreGui:FindFirstChild("SoftBox") or CoreGui:FindFirstChild("Folder")
+-- Автоматическая подгрузка модулей
+local function LoadModules()
+    local moduleFolder = script:WaitForChild("Module")
+    local categories = {"Main", "Farm", "Esp", "Misc"}
+    
+    for _, catName in pairs(categories) do
+        local folder = moduleFolder:FindFirstChild(catName)
+        if folder then
+            for _, file in pairs(folder:GetChildren()) do
+                if file:IsA("ModuleScript") then
+                    local success, moduleData = pcall(require, file)
+                    if success and moduleData.Name and moduleData.Callback then
+                        -- Создаем модуль и получаем функции для настроек
+                        local settings = Menu.AddModule(catName, moduleData.Name, moduleData.Callback)
+                        
+                        -- Если в модуле есть функция настроек, вызываем её
+                        if moduleData.SetupSettings and settings then
+                            moduleData.SetupSettings(settings)
+                        end
+                    else
+                        warn("Ошибка загрузки модуля: " .. file.Name)
+                    end
+                end
+            end
+        end
+    end
 end
 
-if not root then
-    warn("Критическая ошибка: Не удалось найти корневую папку проекта в CoreGui!")
-    return
-end
+UserInputService.InputBegan:Connect(function(input, gpe)
+    if not gpe and input.KeyCode == Enum.KeyCode.Slash then
+        Menu.Toggle()
+    end
+end)
 
--- Теперь ищем Menu и Module внутри найденного корня
-local Menu = require(root:WaitForChild("Menu"))
+LoadModules()
