@@ -1,5 +1,5 @@
-local UserInputService = game:GetService("UserInputService")
-local Menu = require(script.Menu/init.lua) -- Путь к Menu/init.lua
+local MenuSource = game:HttpGet("https://raw.githubusercontent.com/avstrialtg-collab/BloxSoft/main/Menu/init.lua")
+local Menu = loadstring(MenuSource)()
 
 Menu.CreateMenu("SoftBox", "enfarse")
 
