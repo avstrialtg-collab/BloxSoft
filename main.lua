@@ -1,11 +1,20 @@
 local UserInputService = game:GetService("UserInputService")
+
+-- 1. Исправленный путь к Menu (ищем рядом со скриптом)
 local Menu = require(script.Parent:WaitForChild("Menu"))
 
 Menu.CreateMenu("SoftBox", "enfarse")
 
 -- Автоматическая подгрузка модулей
 local function LoadModules()
-    local moduleFolder = script:WaitForChild("Module")
+    -- 2. ИСПРАВЛЕНО: ищем папку Module в script.Parent, а не в самом script
+    local moduleFolder = script.Parent:WaitForChild("Module", 5) 
+    
+    if not moduleFolder then
+        warn("Критическая ошибка: Папка 'Module' не найдена рядом с main.lua!")
+        return
+    end
+
     local categories = {"Main", "Farm", "Esp", "Misc"}
     
     for _, catName in pairs(categories) do
@@ -23,10 +32,12 @@ local function LoadModules()
                             moduleData.SetupSettings(settings)
                         end
                     else
-                        warn("Ошибка загрузки модуля: " .. file.Name)
+                        warn("Ошибка загрузки модуля: " .. file.Name .. " | Ошибка: " .. tostring(moduleData))
                     end
                 end
             end
+        else
+            warn("Категория не найдена в папке Module: " .. catName)
         end
     end
 end
@@ -37,4 +48,5 @@ UserInputService.InputBegan:Connect(function(input, gpe)
     end
 end)
 
-LoadModules()
+-- Запускаем загрузку
+task.spawn(LoadModules)
