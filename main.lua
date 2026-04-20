@@ -37,4 +37,4 @@ UserInputService.InputBegan:Connect(function(input, gpe)
     end
 end)
 
-LoadModules() убери все отступы
+LoadModules()
