@@ -1,19 +1,35 @@
--- Module/misc/speed.lua
-local Module = {}
+local SpeedModule = {
+    Name = "WalkSpeed",
+    CurrentValue = 100
+}
 
-Module.Name = "Speed Hack" -- Название кнопки в меню
-Module.Enabled = false     -- Текущее состояние
-
-Module.Callback = function(state) 
-    -- 'state' придет от кнопки (true или false)
+-- Главная функция включения/выключения
+SpeedModule.Callback = function(state)
     local player = game.Players.LocalPlayer
-    if player and player.Character and player.Character:FindFirstChild("Humanoid") then
-        if state then
-            player.Character.Humanoid.WalkSpeed = 100 -- Твоя скорость
-        else
-            player.Character.Humanoid.WalkSpeed = 16  -- Стандарт
-        end
+    local hum = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+    if hum then
+        hum.WalkSpeed = state and SpeedModule.CurrentValue or 16
     end
 end
 
-return Module
+-- Функция настройки слайдеров и боксов
+SpeedModule.SetupSettings = function(settings)
+    settings.AddSlider(16, 500, 100, function(val)
+        SpeedModule.CurrentValue = val
+        -- Если чит включен, сразу обновляем скорость
+        local hum = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if hum and hum.WalkSpeed ~= 16 then
+            hum.WalkSpeed = val
+        end
+    end)
+    
+    settings.AddTextBox("Custom Value...", function(text)
+        local num = tonumber(text)
+        if num then
+            SpeedModule.CurrentValue = num
+            print("Speed set to:", num)
+        end
+    end)
+end
+
+return SpeedModule
