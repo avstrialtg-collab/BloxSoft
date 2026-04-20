@@ -1,3 +1,4 @@
+local UserInputService = game:GetService("UserInputService")
 local MenuSource = game:HttpGet("https://raw.githubusercontent.com/avstrialtg-collab/BloxSoft/main/Menu/init.lua")
 local Menu = loadstring(MenuSource)()
 
